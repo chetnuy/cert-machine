@@ -1,0 +1,29 @@
+---
+- name: Install requirement application
+  yum:
+    name:
+      - rust
+      - cargo
+      - openssl-devel
+      - openssl
+      - git
+    update_cache: yes
+    state: latest
+  become: yes
+
+- name: Check install cert-machine
+  stat:
+    path: /usr/bin/cert-machine  
+  register: status_cert-machine
+  register: stat_result
+
+- name: clone git repo
+  git:
+    repo: https://github.com/nkmazur/cert_machine.git
+    dest: /tmp/cert-machine
+  when: stat_result.stat.exists == False
+
+
+- name: Build cert-machine 
+  shell: cd /tmp/cert-machine && cargo build && cargo install --root /usr/
+  when: stat_result.stat.exists == False
